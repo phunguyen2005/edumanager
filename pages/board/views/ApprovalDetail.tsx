@@ -1,0 +1,1 @@
+// Moved to pages/BGH/views/ApprovalDetail.tsx
