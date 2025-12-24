@@ -29,7 +29,7 @@ const Transcript: React.FC = () => {
             studentId: result.data[0].studentId,
             studentName: result.data[0].studentName,
           });
-          localStorage.setItem("name", result.data.studentName);
+          localStorage.setItem("name", result.data[0].studentName);
         }
       } else {
         console.error("Fetch info failed");

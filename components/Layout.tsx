@@ -143,7 +143,8 @@ const Sidebar = () => {
   };
 
   const getName = () => {
-    return localStorage.getItem("name");
+    const name = localStorage.getItem("name");
+    return name;
   };
 
   return (
@@ -209,9 +210,7 @@ const Sidebar = () => {
             ></div>
             <div className="flex flex-col">
               {}
-              <p className="text-xs font-bold text-text-main">
-                {userProfile.name}
-              </p>
+              <p className="text-xs font-bold text-text-main">{getName()}</p>
               <p className="text-[10px] text-text-secondary">{getRole()}</p>
             </div>
             <LogOut
