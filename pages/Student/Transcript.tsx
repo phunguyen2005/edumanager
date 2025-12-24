@@ -13,6 +13,8 @@ const MOCK_DATA: TranscriptSubject[] = [
   { id: '8', code: 'ĐL', name: 'Địa lý', color: 'bg-indigo-100 text-indigo-700', oral: [8.0], fifteenMin: [8.0, 8.5], onePeriod: [8.0], final: 8.5, total: 8.2 },
 ];
 
+
+
 const Transcript: React.FC = () => {
   return (
     <Layout breadcrumbs={['Học sinh', 'Bảng điểm']}>
