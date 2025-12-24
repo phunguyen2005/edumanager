@@ -54,6 +54,7 @@ const Login = () => {
   };
 
   const handleRoleSelect = (role: string) => {
+    localStorage.setItem("role", role);
     if (role === "cbhv") {
       navigate("/students");
     } else if (role === "bgh") {
