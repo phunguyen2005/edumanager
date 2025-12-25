@@ -9,7 +9,7 @@ interface Student {
     dob: string;
     sex: string;
     address: string;
-    // class? missing
+    className?: string | null;
 }
 
 interface ClassModel {
@@ -17,13 +17,30 @@ interface ClassModel {
     className: string;
 }
 
+interface Subject {
+    _id: string;
+    subjectId: string;
+    name: string;
+}
+
+interface Grade {
+    _id: string;
+    subjectId: string;
+    hs1: number;
+    hs2: number;
+    hs3: number;
+}
+
 const RecordDashboard = () => {
     const [view, setView] = useState<'preview' | 'list'>('list');
     const [students, setStudents] = useState<Student[]>([]);
     const [classes, setClasses] = useState<ClassModel[]>([]);
+    const [subjects, setSubjects] = useState<Subject[]>([]);
+    const [grades, setGrades] = useState<Grade[]>([]);
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [filterClass, setFilterClass] = useState('all');
 
     // Fetch Data
     useEffect(() => {
@@ -43,6 +60,11 @@ const RecordDashboard = () => {
                 const dataClass = await resClass.json();
                 if (dataClass.data) setClasses(dataClass.data);
 
+                // Fetch Subjects
+                const resSub = await fetch('http://localhost:3001/api/subject', { headers });
+                const dataSub = await resSub.json();
+                if (dataSub.data) setSubjects(dataSub.data);
+
             } catch (error) {
                 console.error(error);
             } finally {
@@ -52,15 +74,29 @@ const RecordDashboard = () => {
         fetchData();
     }, []);
 
-    const handleSelectStudent = (student: Student) => {
+    const handleSelectStudent = async (student: Student) => {
         setSelectedStudent(student);
         setView('preview');
+        // Fetch grades for selected student
+        try {
+            const token = localStorage.getItem('accessToken');
+            const res = await fetch(`http://localhost:3001/api/subject-grade/student/${student.studentId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.data) setGrades(data.data);
+            else setGrades([]);
+        } catch (error) {
+            console.error(error);
+            setGrades([]);
+        }
     }
 
-    const filteredStudents = students.filter(s =>
-        (s.fullname || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (s.studentId || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredStudents = students.filter(s => {
+        const matchName = (s.fullname || '').toLowerCase().includes(searchTerm.toLowerCase()) || (s.studentId || '').toLowerCase().includes(searchTerm.toLowerCase());
+        const matchClass = filterClass === 'all' || (s.className === filterClass);
+        return matchName && matchClass;
+    });
 
     const formatDate = (dateString: string) => {
         if (!dateString) return '';
@@ -96,9 +132,12 @@ const RecordDashboard = () => {
                             </div>
                             <div className="md:col-span-3">
                                 <label className="block text-sm font-medium text-text-main mb-2">Lớp học</label>
-                                <select className="w-full py-3 px-4 bg-surface-dim border-none rounded-xl text-text-main text-sm cursor-pointer">
-                                    <option value="">Tất cả</option>
-                                    {classes.map(c => <option key={c._id} value={c._id}>{c.className}</option>)}
+                                <select
+                                    value={filterClass}
+                                    onChange={(e) => setFilterClass(e.target.value)}
+                                    className="w-full py-3 px-4 bg-surface-dim border-none rounded-xl text-text-main text-sm cursor-pointer">
+                                    <option value="all">Tất cả</option>
+                                    {classes.map(c => <option key={c._id} value={c.className}>{c.className}</option>)}
                                 </select>
                             </div>
                             <div className="md:col-span-3">
@@ -175,19 +214,79 @@ const RecordDashboard = () => {
                                             <p className="mb-1"><span className="font-semibold">Năm học:</span> 2023 - 2024</p>
                                         </div>
                                     </div>
-                                    <div className="border border-black mb-6">
-                                        <table className="w-full text-xs">
-                                            <thead>
-                                                <tr className="border-b border-black"><th className="border-r border-black p-2 text-left">Môn học</th><th className="p-2 w-16 text-center">Cả năm</th></tr>
-                                            </thead>
-                                            <tbody>
-                                                {/* Dummy Grades because Backend API for getting grades by student ID for teachers is missing */}
-                                                <tr className="border-b border-black"><td className="border-r border-black p-2 font-semibold">Toán học</td><td className="p-2 text-center font-bold">--</td></tr>
-                                                <tr className="border-b border-black"><td className="border-r border-black p-2 font-semibold">Ngữ văn</td><td className="p-2 text-center font-bold">--</td></tr>
-                                                <tr className="border-b border-black"><td className="border-r border-black p-2 font-semibold">Tiếng Anh</td><td className="p-2 text-center font-bold">--</td></tr>
-                                                <tr><td colSpan={2} className="p-2 text-center italic text-red-500">* Dữ liệu điểm chưa khả dụng từ Server</td></tr>
-                                            </tbody>
-                                        </table>
+                                    <table className="w-full text-xs border-collapse border border-black mb-6">
+                                        <thead>
+                                            <tr className="border-b border-black">
+                                                <th className="border-r border-black p-2 text-left w-10">STT</th>
+                                                <th className="border-r border-black p-2 text-left">Môn học</th>
+                                                <th className="border-r border-black p-2 w-16 text-center">TB Các Năm</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {subjects.map((sub, index) => {
+                                                const grade = grades.find(g => g.subjectId === sub.subjectId);
+                                                const avg = grade ? ((grade.hs1 + grade.hs2 * 2 + grade.hs3 * 3) / 6).toFixed(1) : '--';
+                                                return (
+                                                    <tr key={sub._id} className="border-b border-black">
+                                                        <td className="border-r border-black p-2 text-center">{index + 1}</td>
+                                                        <td className="border-r border-black p-2 font-semibold">{sub.name}</td>
+                                                        <td className="border-r border-black p-2 text-center font-bold">{avg}</td>
+                                                    </tr>
+                                                );
+                                            })}
+                                            {subjects.length === 0 && (
+                                                <tr><td colSpan={3} className="p-2 text-center italic text-text-secondary">Chưa có dữ liệu môn học</td></tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+
+                                    <div className="mt-8 pt-4 border-t border-black">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <h4 className="font-bold mb-2">Tổng kết:</h4>
+                                                {(() => {
+                                                    let totalScore = 0;
+                                                    let subjectCount = 0;
+                                                    let isMissingGrade = false;
+
+                                                    subjects.forEach(sub => {
+                                                        const grade = grades.find(g => g.subjectId === sub.subjectId);
+                                                        if (grade) {
+                                                            const avg = (grade.hs1 + grade.hs2 * 2 + grade.hs3 * 3) / 6;
+                                                            totalScore += avg;
+                                                            subjectCount++;
+                                                        } else {
+                                                            isMissingGrade = true;
+                                                        }
+                                                    });
+
+                                                    const gpa = subjectCount > 0 ? (totalScore / subjectCount).toFixed(1) : 'Unknown';
+                                                    let classification = '';
+                                                    if (gpa === 'Unknown') classification = 'Chưa đủ điểm';
+                                                    else {
+                                                        const score = parseFloat(gpa as string);
+                                                        if (score >= 8.0) classification = 'Giỏi';
+                                                        else if (score >= 6.5) classification = 'Khá';
+                                                        else if (score >= 5.0) classification = 'Trung bình';
+                                                        else classification = 'Yếu';
+                                                    }
+
+                                                    return (
+                                                        <div className="text-sm">
+                                                            <p className="mb-1"><span className="font-semibold">Điểm trung bình (GPA):</span> {gpa}</p>
+                                                            <p className="mb-1"><span className="font-semibold">Học lực:</span> {classification}</p>
+                                                            <p className="mb-1"><span className="font-semibold">Hạnh kiểm:</span> Tốt</p>
+                                                            {isMissingGrade && <p className="text-xs text-red-500 italic mt-2">* Chưa đủ điểm tất cả các môn</p>}
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </div>
+                                            <div className="text-center pr-8">
+                                                <p className="italic text-xs mb-2">Ngày ..... tháng ..... năm 2024</p>
+                                                <p className="font-bold uppercase">Hiệu trưởng</p>
+                                                <p className="text-xs italic">(Ký, ghi rõ họ tên, đóng dấu)</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -202,6 +301,7 @@ const RecordDashboard = () => {
                                         <th className="px-6 py-4 font-semibold text-sm text-text-secondary uppercase">Mã HS</th>
                                         <th className="px-6 py-4 font-semibold text-sm text-text-secondary uppercase">Họ và tên</th>
                                         <th className="px-6 py-4 font-semibold text-sm text-text-secondary uppercase">Ngày sinh</th>
+                                        <th className="px-6 py-4 font-semibold text-sm text-text-secondary uppercase">Lớp</th>
                                         <th className="px-6 py-4 font-semibold text-sm text-text-secondary uppercase text-right">Hành động</th>
                                     </tr>
                                 </thead>
@@ -216,6 +316,11 @@ const RecordDashboard = () => {
                                                 <td className="px-6 py-4 font-medium">{s.studentId}</td>
                                                 <td className="px-6 py-4 font-semibold">{s.fullname}</td>
                                                 <td className="px-6 py-4 text-sm text-text-secondary">{formatDate(s.dob)}</td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${s.className ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                                                        {s.className || 'Chưa xếp lớp'}
+                                                    </span>
+                                                </td>
                                                 <td className="px-6 py-4 text-right">
                                                     <button
                                                         onClick={() => handleSelectStudent(s)}

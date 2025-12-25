@@ -47,6 +47,26 @@ const TeacherList = () => {
         (t.email || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const handleDelete = async (id: string) => {
+        if (!window.confirm('Bạn có chắc muốn xóa giáo viên này?')) return;
+        try {
+            const token = localStorage.getItem('accessToken');
+            const res = await fetch(`http://localhost:3001/api/teacher/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                alert('Xóa giáo viên thành công');
+                fetchTeachers();
+            } else {
+                alert('Có lỗi xảy ra khi xóa');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Lỗi kết nối');
+        }
+    }
+
     return (
         <Layout breadcrumbs={['Trang chủ', 'Giáo viên', 'Danh sách']}>
             <div className="max-w-[1440px] mx-auto p-4 lg:p-8 flex flex-col gap-6">
@@ -119,7 +139,9 @@ const TeacherList = () => {
                                                     <button className="p-2 text-text-secondary hover:text-text-main hover:bg-surface-dim rounded-full transition-colors">
                                                         <Edit size={18} />
                                                     </button>
-                                                    <button className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-full transition-colors">
+                                                    <button
+                                                        onClick={() => handleDelete(teacher._id)}
+                                                        className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-full transition-colors">
                                                         <Trash2 size={18} />
                                                     </button>
                                                 </div>
