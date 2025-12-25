@@ -9,6 +9,7 @@ interface Student {
   dob: string;
   sex: string;
   avatar: string;
+  className?: string | null;
 }
 
 interface ClassModel {
@@ -217,7 +218,7 @@ const TransferClass = () => {
                         <p className="text-[11px] text-text-secondary uppercase tracking-wider font-bold mb-1">Lớp hiện tại</p>
                         <div className="flex items-center gap-1.5">
                           <LogOut size={16} className="text-text-secondary" />
-                          <p className="text-base font-bold text-text-main">--</p> {/* Missing Class Data from Student API */}
+                          <p className="text-base font-bold text-text-main">{selectedStudent.className || 'Chưa xếp lớp'}</p>
                         </div>
                       </div>
                     </div>
