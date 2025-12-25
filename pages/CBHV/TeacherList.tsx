@@ -42,6 +42,26 @@ const TeacherList = () => {
         fetchTeachers();
     }, []);
 
+    const handleDelete = async (id: string) => {
+        if (!window.confirm('Bạn có chắc muốn xóa giáo viên này?')) return;
+        try {
+            const token = localStorage.getItem('accessToken');
+            const res = await fetch(`http://localhost:3001/api/teacher/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                alert('Xóa thành công');
+                fetchTeachers();
+            } else {
+                alert('Xóa thất bại');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Lỗi khi xóa');
+        }
+    }
+
     const filteredTeachers = teachers.filter(t =>
         (t.fullname || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (t.email || '').toLowerCase().includes(searchTerm.toLowerCase())
@@ -116,10 +136,14 @@ const TeacherList = () => {
                                             <td className="py-5 px-6 text-sm text-text-secondary truncate max-w-[200px]">{teacher.address}</td>
                                             <td className="py-5 px-6 text-right">
                                                 <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button className="p-2 text-text-secondary hover:text-text-main hover:bg-surface-dim rounded-full transition-colors">
+                                                    <button
+                                                        onClick={() => alert('Chức năng sửa đang được phát triển')}
+                                                        className="p-2 text-text-secondary hover:text-text-main hover:bg-surface-dim rounded-full transition-colors">
                                                         <Edit size={18} />
                                                     </button>
-                                                    <button className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-full transition-colors">
+                                                    <button
+                                                        onClick={() => handleDelete(teacher._id)}
+                                                        className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-full transition-colors">
                                                         <Trash2 size={18} />
                                                     </button>
                                                 </div>

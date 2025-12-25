@@ -11,7 +11,7 @@ interface Student {
   sex: string;
   address: string;
   avatar: string;
-  // Note: Class info is not returned by getAllStudents API currently
+  className?: string;
 }
 
 interface ClassModel {
@@ -26,7 +26,7 @@ const StudentList = () => {
   const [classes, setClasses] = useState<ClassModel[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  // const [filterClass, setFilterClass] = useState('Tất cả');
+  const [filterClass, setFilterClass] = useState('all');
 
   const fetchStudents = async () => {
     setLoading(true);
@@ -93,7 +93,8 @@ const StudentList = () => {
 
   const filteredStudents = students.filter(s => {
     const matchName = (s.fullname || '').toLowerCase().includes(searchTerm.toLowerCase()) || (s.studentId || '').toLowerCase().includes(searchTerm.toLowerCase());
-    return matchName;
+    const matchClass = filterClass === 'all' || s.className === filterClass || (filterClass === 'none' && !s.className);
+    return matchName && matchClass;
   }).sort((a, b) => {
     const idA = a.studentId || '';
     const idB = b.studentId || '';
@@ -149,8 +150,12 @@ const StudentList = () => {
           <div className="flex flex-wrap gap-3">
             <div className="relative min-w-[160px] flex-1 lg:flex-none">
               <span className="text-[10px] font-bold text-text-secondary absolute left-4 top-1.5 uppercase tracking-wider">Lớp</span>
-              <select className="w-full pt-5 pb-1.5 px-4 bg-surface-dim border-none rounded-xl text-text-main text-sm font-medium focus:ring-2 focus:ring-primary focus:bg-white appearance-none cursor-pointer">
+              <select
+                value={filterClass}
+                onChange={(e) => setFilterClass(e.target.value)}
+                className="w-full pt-5 pb-1.5 px-4 bg-surface-dim border-none rounded-xl text-text-main text-sm font-medium focus:ring-2 focus:ring-primary focus:bg-white appearance-none cursor-pointer">
                 <option value="all">Tất cả</option>
+                <option value="none">Chưa xếp lớp</option>
                 {classes.map(c => (
                   <option key={c._id} value={c.className}>{c.className}</option>
                 ))}
@@ -213,15 +218,20 @@ const StudentList = () => {
                       </td>
                       <td className="py-4 px-6 text-sm text-text-main">{formatDate(student.dob)}</td>
                       <td className="py-4 px-6 text-sm text-text-main">{student.sex}</td>
-                      <td className="py-4 px-6">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600`}>
-                          --
+                      <td className="py-4 px-6 text-sm">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${student.className
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-gray-100 text-gray-600'
+                          }`}>
+                          {student.className || 'Chưa xếp lớp'}
                         </span>
                       </td>
                       <td className="py-4 px-6 text-sm text-text-secondary truncate max-w-[200px]">{student.address}</td>
                       <td className="py-4 px-6 text-right">
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button className="p-2 text-text-secondary hover:text-text-main hover:bg-surface-dim rounded-full transition-colors">
+                          <button
+                            onClick={() => alert('Chức năng sửa đang được phát triển')}
+                            className="p-2 text-text-secondary hover:text-text-main hover:bg-surface-dim rounded-full transition-colors">
                             <Edit size={18} />
                           </button>
                           <button

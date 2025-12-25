@@ -34,7 +34,7 @@ const AddTeacher = () => {
 
         try {
             const token = localStorage.getItem('accessToken');
-            const res = await fetch('http://localhost:3001/api/teacher/create', {
+            const res = await fetch('http://localhost:3001/api/teacher', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -49,9 +49,9 @@ const AddTeacher = () => {
             } else {
                 alert(data.message || 'Thêm giáo viên thất bại');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert('Lỗi kết nối server');
+            alert(`Lỗi: ${error.message || 'Lỗi kết nối server'}`);
         } finally {
             setLoading(false);
         }

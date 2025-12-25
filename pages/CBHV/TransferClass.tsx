@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/Layout';
-import { Search, X, MoveRight, Info, Check, LogOut, User } from 'lucide-react';
+import { Search, X, MoveRight, Info, Check, LogOut, User, ArrowLeft } from 'lucide-react';
 
 interface Student {
   _id: string;
@@ -9,6 +10,7 @@ interface Student {
   dob: string;
   sex: string;
   avatar: string;
+  className?: string;
 }
 
 interface ClassModel {
@@ -19,6 +21,7 @@ interface ClassModel {
 }
 
 const TransferClass = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [students, setStudents] = useState<Student[]>([]);
   const [classes, setClasses] = useState<ClassModel[]>([]);
@@ -94,7 +97,7 @@ const TransferClass = () => {
     try {
       const token = localStorage.getItem('accessToken');
       const res = await fetch(`http://localhost:3001/api/student/changeClass/${selectedStudent._id}`, {
-        method: 'PUT',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -132,9 +135,14 @@ const TransferClass = () => {
     <Layout breadcrumbs={['Trang chủ', 'Xếp lớp', 'Chuyển lớp']}>
       <div className="max-w-[1440px] mx-auto p-4 lg:p-8 flex flex-col gap-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h2 className="text-2xl lg:text-[24px] font-semibold text-text-main tracking-tight mb-1">Chuyển lớp</h2>
-            <p className="text-text-secondary text-base">Tìm kiếm học sinh và thực hiện chuyển lớp học trong học kỳ hiện tại.</p>
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate('/students')} className="p-2 hover:bg-surface-dim rounded-full transition-colors text-text-secondary hover:text-text-main">
+              <ArrowLeft size={24} />
+            </button>
+            <div>
+              <h2 className="text-2xl lg:text-[24px] font-semibold text-text-main tracking-tight mb-1">Chuyển lớp</h2>
+              <p className="text-text-secondary text-base">Tìm kiếm học sinh và thực hiện chuyển lớp học trong học kỳ hiện tại.</p>
+            </div>
           </div>
         </div>
 
@@ -217,7 +225,9 @@ const TransferClass = () => {
                         <p className="text-[11px] text-text-secondary uppercase tracking-wider font-bold mb-1">Lớp hiện tại</p>
                         <div className="flex items-center gap-1.5">
                           <LogOut size={16} className="text-text-secondary" />
-                          <p className="text-base font-bold text-text-main">--</p> {/* Missing Class Data from Student API */}
+                          <p className={`text-base font-bold ${selectedStudent.className ? 'text-blue-600' : 'text-text-secondary'}`}>
+                            {selectedStudent.className || 'Chưa xếp lớp'}
+                          </p>
                         </div>
                       </div>
                     </div>

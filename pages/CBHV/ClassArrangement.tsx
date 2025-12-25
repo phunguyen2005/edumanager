@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/Layout';
-import { Save, Plus, Grid, List, Lock, Search, UserCheck, Users } from 'lucide-react';
+import { Save, Plus, Grid, List, Lock, Search, UserCheck, Users, Info } from 'lucide-react';
 
 interface Student {
     _id: string;
@@ -27,6 +28,7 @@ interface Teacher {
 }
 
 const ClassArrangement = () => {
+    const navigate = useNavigate();
     const [waitingStudents, setWaitingStudents] = useState<Student[]>([]);
     const [classes, setClasses] = useState<ClassModel[]>([]);
     const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -147,7 +149,7 @@ const ClassArrangement = () => {
     const getTeacherName = (id: string) => {
         if (!id) return 'Chưa phân công';
         const teacher = teachers.find(t => String(t._id) === String(id) || String(t.teacherId) === String(id));
-        return teacher ? (teacher.fullname || teacher.name || id) : id;
+        return teacher ? (teacher.fullname || teacher.name || '') : '';
     }
 
     const filteredWaiting = waitingStudents.filter(s =>
@@ -262,9 +264,15 @@ const ClassArrangement = () => {
                             {viewMode === 'grid' && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {classes.map(cls => (
-                                        <div key={cls._id || cls.className} className="flex flex-col bg-white border border-surface-dim rounded-xl p-5 shadow-sm hover:shadow-md hover:border-primary transition-all group">
+                                        <div key={cls._id || cls.className} className="flex flex-col bg-white border border-surface-dim rounded-xl p-5 shadow-sm hover:shadow-md hover:border-primary transition-all group relative">
                                             <div className="flex justify-between items-start mb-2">
-                                                <h4 className="text-[18px] font-bold text-text-main">{cls.className}</h4>
+                                                <h4
+                                                    onClick={() => navigate(`/classes/${cls._id}`)}
+                                                    className="text-[18px] font-bold text-text-main cursor-pointer hover:text-primary transition-colors flex items-center gap-2"
+                                                >
+                                                    {cls.className}
+                                                    <Info size={16} className="text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                </h4>
                                                 <span className="text-xs font-semibold bg-gray-100 px-2 py-1 rounded">Khối {cls.grade}</span>
                                             </div>
                                             <div className="mt-1">
@@ -306,7 +314,12 @@ const ClassArrangement = () => {
                                         <tbody className="divide-y divide-surface-dim">
                                             {classes.map(cls => (
                                                 <tr key={cls._id} className="hover:bg-primary/5 transition-colors">
-                                                    <td className="p-3 font-bold text-text-main">{cls.className}</td>
+                                                    <td
+                                                        onClick={() => navigate(`/classes/${cls._id}`)}
+                                                        className="p-3 font-bold text-text-main cursor-pointer hover:text-primary hover:underline"
+                                                    >
+                                                        {cls.className}
+                                                    </td>
                                                     <td className="p-3 text-sm">{cls.grade}</td>
                                                     <td className="p-3 text-sm font-semibold">{cls.actualSize}/{cls.quantity}</td>
                                                     <td className="p-3 text-sm">{getTeacherName(cls.homeroomTeacher)}</td>
