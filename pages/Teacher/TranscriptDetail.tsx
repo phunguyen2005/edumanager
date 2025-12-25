@@ -101,7 +101,7 @@ const TranscriptDetail: React.FC = () => {
                 </div>
                 <div className="text-right bg-white/50 px-6 py-2 rounded-xl border border-blue-100">
                     <p className="text-xs font-bold text-text-secondary mb-1 uppercase tracking-wide">Điểm trung bình</p>
-                    <div className="text-4xl font-black text-blue-600">8.5</div>
+                    <div className="text-4xl font-black text-blue-600"></div>
                 </div>
             </div>
 
