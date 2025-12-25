@@ -1,48 +1,71 @@
 import React, { useEffect, useState } from "react";
 import { mockClasses } from "./mockData";
 import { Layout } from "../../components/Layout";
+import { Link } from "react-router-dom";
 
 const ClassList: React.FC = () => {
     const homeroomClasses = mockClasses.filter((c) => c.type === "homeroom");
     const teachingClasses = mockClasses.filter((c) => c.type === "teaching");
     const [classTeach, setClassTeach] = useState<any | null>(null);
     const [teachLoading, setTeachLoading] = useState<boolean>(false);
+    const [cnLoading, setCnLoading] = useState<boolean>(false);
+    const [classCn, setClassCn] = useState<any | null>(null);
+    
 
     useEffect(() => {
-        const getClassTeach = async () => {
+        const fetchData = async () => {
             try {
+                setCnLoading(true);
                 setTeachLoading(true);
                 const accessToken = localStorage.getItem("accessToken");
                 if (!accessToken) throw new Error("Unauthorize");
 
-                const res = await fetch("http://localhost:3001/api/class", {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                });
+                const [cnRes, teachRes] = await Promise.all([
+                    fetch("http://localhost:3001/api/class", {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${accessToken}`,
+                        },
+                    }),
+                    fetch("http://localhost:3001/api/class", {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${accessToken}`,
+                        },
+                    })
+                ]);
 
-                if (!res.ok) {
-                    const errData = await res.json();
-                    throw new Error(errData.message || "fetch thất bại");
+                if (!cnRes.ok) {
+                    const errData = await cnRes.json();
+                    throw new Error(errData.message || "Fetch lớp chủ nhiệm thất bại");
                 }
 
-                const data = await res.json();
+                if (!teachRes.ok) {
+                    const errData = await teachRes.json();
+                    throw new Error(errData.message || "Fetch lớp giảng dạy thất bại");
+                }
 
-                console.log("fetch lop", data);
+                const cnData = await cnRes.json();
+                const teachData = await teachRes.json();
 
-                setClassTeach(data.data);
+                console.log("fetch lop chu nhiem", cnData);
+                console.log("fetch lop giang day", teachData);
+
+                setClassCn(cnData.data);
+                setClassTeach(teachData.data);
             } catch (error) {
                 console.error(
-                    error.message || "Đã có lỗi xảy ra. Hãy thử lại!"
+                    error instanceof Error ? error.message : "Đã có lỗi xảy ra. Hãy thử lại!"
                 );
             } finally {
+                setCnLoading(false);
                 setTeachLoading(false);
             }
         };
 
-        getClassTeach();
+        fetchData();
     }, []);
 
     return (
@@ -109,10 +132,94 @@ const ClassList: React.FC = () => {
                     <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-4 pl-1">
                         Danh sách lớp chủ nhiệm
                     </h3>
-                    <div className="bg-surface-light rounded-3xl shadow-sm border border-surface-dim overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
+                    {cnLoading ? (
+                        <p className="text-center">Đang tải...</p>
+                    ) : classCn?.length === 0 || !classCn ? (
+                        <p className="text-center">
+                            Bạn chưa được phân công chủ nhiệm lớp nào
+                        </p>
+                    ) : (
+                        <div className="bg-surface-light rounded-3xl shadow-sm border border-surface-dim overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-[#fafaf5] text-xs font-bold text-text-secondary uppercase border-b border-surface-dim">
+                                            <th className="px-6 py-4 w-10"></th>
+                                            <th className="px-6 py-4">Mã Lớp</th>
+                                            <th className="px-6 py-4">Tên Lớp</th>
+                                            <th className="px-6 py-4">GVCN</th>
+                                            <th className="px-6 py-4 text-center">
+                                                Khối
+                                            </th>
+                                            <th className="px-6 py-4">Sĩ số</th>
+                                            <th className="px-6 py-4 text-right">
+                                                Hành động
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-surface-dim text-sm">
+                                        {classCn.map((cls) => (
+                                            <tr
+                                                key={cls._id}
+                                                className="hover:bg-surface-dim/30 transition-colors"
+                                            >
+                                                <td className="px-6 py-4">
+                                                    <div className="w-4 h-4 rounded-full border-2 border-surface-dim"></div>
+                                                </td>
+                                                <td className="px-6 py-4 text-text-main font-bold">
+                                                    {cls._id}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-xs font-bold">
+                                                        {cls.className}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-text-main font-medium">
+                                                    {cls.homeroomTeacher || "Chưa có"}
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <span className="bg-surface-dim text-text-secondary px-2 py-1 rounded text-xs font-bold">
+                                                        {cls.grade}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-text-main font-medium">
+                                                    {cls.quantity}
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <Link
+                                                        to={`/teacher/grades/${cls._id}`}
+                                                        className="text-text-main hover:text-primary-hover hover:underline text-sm font-bold"
+                                                    >
+                                                        Xem lớp
+                                                    </Link>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </section>
+
+                {/* Teaching Section */}
+                {teachLoading ? (
+                    <p className="text-center">Dang tai...</p>
+                ) : (
+                    <section>
+                        <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-4 pl-1">
+                            Danh sách lớp giảng dạy
+                        </h3>
+                        
+                        {classTeach?.length === 0 || !classTeach ? (
+                            <p className="text-center">
+                                Bạn chưa được phân công giảng dạy lớp nào
+                            </p>
+                        ) : (
+                            <div className="bg-surface-light rounded-3xl shadow-sm border border-surface-dim overflow-hidden">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
                                     <tr className="bg-[#fafaf5] text-xs font-bold text-text-secondary uppercase border-b border-surface-dim">
                                         <th className="px-6 py-4 w-10"></th>
                                         <th className="px-6 py-4">Mã Lớp</th>
@@ -127,82 +234,26 @@ const ClassList: React.FC = () => {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-surface-dim text-sm">
-                                    {homeroomClasses.map((cls) => (
-                                        <tr
-                                            key={cls.id}
-                                            className="hover:bg-surface-dim/30 transition-colors"
-                                        >
-                                            <td className="px-6 py-4">
-                                                <div className="w-4 h-4 rounded-full border-2 border-surface-dim"></div>
-                                            </td>
-                                            <td className="px-6 py-4 text-text-main font-bold">
-                                                {cls.code}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-xs font-bold">
-                                                    {cls.name}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-text-main font-medium">
-                                                {cls.dob}
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <span className="bg-surface-dim text-text-secondary px-2 py-1 rounded text-xs font-bold">
-                                                    {cls.grade}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-text-main font-medium">
-                                                {cls.subject}
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <button className="text-text-main hover:text-primary-hover hover:underline text-sm font-bold">
-                                                    Xem lớp
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Teaching Section */}
-                {teachLoading ? (
-                    <p className="text-center">Dang tai...</p>
-                ) : (
-                    <section>
-                        <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-4 pl-1">
-                            Danh sách lớp giảng dạy
-                        </h3>
-                        {classTeach?.length === 0 ? (
-                            <p className="text-center">
-                                Bạn chưa được phân công giảng dạy lớp nào
-                            </p>
-                        ) : (
-                            <div className="bg-surface-light rounded-3xl shadow-sm border border-surface-dim overflow-hidden">
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-left border-collapse">
                                         <tbody className="divide-y divide-surface-dim text-sm">
-                                            {teachingClasses.map((cls) => (
+                                            {classTeach.map((cls: any) => (
                                                 <tr
-                                                    key={cls.id}
+                                                    key={cls._id}
                                                     className="hover:bg-surface-dim/30 transition-colors"
                                                 >
                                                     <td className="px-6 py-4 w-10">
                                                         <div className="w-4 h-4 rounded-full border-2 border-surface-dim"></div>
                                                     </td>
                                                     <td className="px-6 py-4 text-text-main font-bold">
-                                                        {cls.code}
+                                                        {cls._id}
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <span className="bg-purple-50 text-purple-700 px-3 py-1 rounded-lg text-xs font-bold">
-                                                            {cls.name}
+                                                            {cls.className}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 text-text-main font-medium">
-                                                        {cls.dob}
+                                                        {cls.fullname ||
+                                                            "chua co ten"}
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
                                                         <span className="bg-surface-dim text-text-secondary px-2 py-1 rounded text-xs font-bold">
@@ -210,12 +261,17 @@ const ClassList: React.FC = () => {
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 text-text-main font-medium">
-                                                        {cls.subject}
+                                                        {cls.quantity}
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
-                                                        <button className="text-text-main hover:text-primary-hover hover:underline text-sm font-bold">
+                                                        <Link
+                                                            to={
+                                                                `/teacher/inputGrades/${cls._id}`
+                                                            }
+                                                            className="text-text-main hover:text-primary-hover hover:underline text-sm font-bold"
+                                                        >
                                                             Xem lớp
-                                                        </button>
+                                                        </Link>
                                                     </td>
                                                 </tr>
                                             ))}
@@ -230,7 +286,7 @@ const ClassList: React.FC = () => {
                                         </span>{" "}
                                         trên{" "}
                                         <span className="font-bold text-text-main">
-                                            124
+                                            {classTeach.length}
                                         </span>{" "}
                                         học sinh
                                     </span>

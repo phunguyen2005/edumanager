@@ -38,6 +38,7 @@ const Login = () => {
             if (res.status === 200) {
                 // giả sử response: { data: { accessToken, role } }
                 console.log(result.data);
+                localStorage.setItem("name", result.data.fullname);
                 localStorage.setItem("accessToken", result.data.accessToken);
                 handleRoleSelect(result.data.role);
                 return true;
