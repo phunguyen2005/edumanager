@@ -53,7 +53,8 @@ const ClassList: React.FC = () => {
                 console.log("fetch lop chu nhiem", cnData);
                 console.log("fetch lop giang day", teachData);
 
-                setClassCn(cnData.data);
+                //setClassCn(cnData.data);
+                setClassCn([]);
                 setClassTeach(teachData.data);
             } catch (error) {
                 console.error(
@@ -253,7 +254,7 @@ const ClassList: React.FC = () => {
                                                     </td>
                                                     <td className="px-6 py-4 text-text-main font-medium">
                                                         {cls.fullname ||
-                                                            "chua co ten"}
+                                                            cls.homeroomTeacher }
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
                                                         <span className="bg-surface-dim text-text-secondary px-2 py-1 rounded text-xs font-bold">
