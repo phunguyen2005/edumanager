@@ -80,14 +80,25 @@ const RecordDashboard = () => {
         // Fetch grades for selected student
         try {
             const token = localStorage.getItem('accessToken');
-            const res = await fetch(`http://localhost:3001/api/subject-grade/student/${student.studentId}`, {
+            console.log('Fetching grades for studentId:', student.studentId);
+            const url = `http://localhost:3001/api/subject-grade/student/${student.studentId}`;
+            console.log('API URL:', url);
+
+            const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            console.log('Response status:', res.status);
+
             const data = await res.json();
-            if (data.data) setGrades(data.data);
+            console.log('Grade Data:', data);
+
+            if (data.data) {
+                setGrades(data.data);
+                if (data.data.length === 0) console.warn('No grades found for this student.');
+            }
             else setGrades([]);
         } catch (error) {
-            console.error(error);
+            console.error("Error fetching grades:", error);
             setGrades([]);
         }
     }

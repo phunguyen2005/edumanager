@@ -34,7 +34,7 @@ const AddTeacher = () => {
 
         try {
             const token = localStorage.getItem('accessToken');
-            const res = await fetch('http://localhost:3001/api/teacher/create', {
+            const res = await fetch('http://localhost:3001/api/teacher', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
