@@ -23,6 +23,7 @@ import ClassList from './pages/Teacher/ClassList';
 import ConductEvaluation from './pages/Teacher/ConductEvaluation';
 import GradeAppeals from './pages/Teacher/GradeAppeals';
 import StudentGradesList from './pages/Teacher/StudentGradesList';
+import InputGrades from './pages/Teacher/InputGrades';
 import TranscriptDetail from './pages/Teacher/TranscriptDetail';
 
 // Student Pages
@@ -65,9 +66,9 @@ function App() {
         <Route path="/teacher/classes" element={<ClassList />} />
         <Route path="/teacher/conduct" element={<ConductEvaluation />} />
         <Route path="/teacher/appeals" element={<GradeAppeals />} />
-        <Route path="/teacher/grades" element={<StudentGradesList />} />
-        <Route path="/teacher/transcript" element={<TranscriptDetail />} />
-
+        <Route path="/teacher/grades/:classId" element={<StudentGradesList />} />
+        <Route path="/teacher/inputGrades/:classId" element={<InputGrades />} />
+        <Route path="/teacher/transcript/:classId" element={<TranscriptDetail />} />
         {/* Student Routes (Student Role) */}
         <Route path="/student/ranking" element={<Ranking />} />
         <Route path="/student/review" element={<Review />} />
