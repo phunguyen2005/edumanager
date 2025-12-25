@@ -39,6 +39,11 @@ const Transcript: React.FC = () => {
     }
   };
 
+  const showAlert = (e: React.FormEvent) => {
+    e.preventDefault();
+    alert("Xác nhận thành công");
+  };
+
   useEffect(() => {
     fetchUserInfo();
   }, []);
@@ -63,7 +68,10 @@ const Transcript: React.FC = () => {
               </span>
               In bảng điểm
             </button>
-            <button className="flex items-center gap-2 bg-primary hover:bg-[#5066d6] text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-sm transition-all active:scale-95">
+            <button
+              className="flex items-center gap-2 bg-primary hover:bg-[#5066d6] text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-sm transition-all active:scale-95"
+              onClick={(e) => showAlert(e)}
+            >
               <span className="material-symbols-outlined !text-[20px]">
                 check_circle
               </span>
