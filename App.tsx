@@ -10,6 +10,7 @@ import TeacherList from './pages/CBHV/TeacherList';
 import AddTeacher from './pages/CBHV/AddTeacher';
 import SubjectList from './pages/CBHV/SubjectList';
 import ClassArrangement from './pages/CBHV/ClassArrangement';
+import ClassDetail from './pages/CBHV/ClassDetail';
 import RecordDashboard from './pages/CBHV/RecordDashboard';
 
 // Board of Management (BGH) Pages
@@ -35,22 +36,23 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/dashboard" element={<Navigate to="/students" replace />} />
-        
+
         {/* Student Routes */}
         <Route path="/students" element={<StudentList />} />
         <Route path="/students/add" element={<AddStudent />} />
         <Route path="/students/transfer" element={<TransferClass />} />
-        
+
         {/* Teacher Routes (CBHV view) */}
         <Route path="/teachers" element={<TeacherList />} />
         <Route path="/teachers/add" element={<AddTeacher />} />
-        
+
         {/* Subject Routes */}
         <Route path="/subjects" element={<SubjectList />} />
-        
+
         {/* Class Routes */}
         <Route path="/classes" element={<ClassArrangement />} />
-        
+        <Route path="/classes/:id" element={<ClassDetail />} />
+
         {/* Record Routes */}
         <Route path="/records" element={<RecordDashboard />} />
 
@@ -65,7 +67,7 @@ function App() {
         <Route path="/teacher/appeals" element={<GradeAppeals />} />
         <Route path="/teacher/grades" element={<StudentGradesList />} />
         <Route path="/teacher/transcript" element={<TranscriptDetail />} />
-        
+
         {/* Student Routes (Student Role) */}
         <Route path="/student/ranking" element={<Ranking />} />
         <Route path="/student/review" element={<Review />} />
@@ -73,7 +75,7 @@ function App() {
 
         {/* Redirect for generic teacher path */}
         <Route path="/teacher" element={<Navigate to="/teacher/classes" replace />} />
-        
+
         {/* Redirect for generic student path */}
         <Route path="/student" element={<Navigate to="/student/transcript" replace />} />
 
