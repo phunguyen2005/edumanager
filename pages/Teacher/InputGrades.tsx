@@ -4,6 +4,8 @@ import { useParams } from 'react-router-dom';
 import { Layout } from '../../components/Layout';
 import { Search, FileUp, FileDown, Save, ChevronDown, Info } from 'lucide-react';
 
+const subjectId = '694d34c8c2d09ec3928e354e'
+
 const TranscriptDetail: React.FC = () => {
   const { classId } = useParams<{ classId: string }>();
   const [students, setStudents] = useState<any[]>([]);
@@ -45,6 +47,7 @@ const TranscriptDetail: React.FC = () => {
           final: '',
           total: ''
         }));
+        console.log('Transformed Students:', students);
         
         setStudents(transformedStudents);
         
@@ -69,25 +72,25 @@ const TranscriptDetail: React.FC = () => {
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) throw new Error('Unauthorized');
 
+
     await Promise.all(
-      students.map(student =>
-        fetch('http://localhost:3001/api/subject-grade', {
+      students.map(student => {
+        if (student.m15_1 && student.midterm && student.final) {
+        return fetch('http://localhost:3001/api/subject-grade', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${accessToken}`,
           },
           body: JSON.stringify({
-            subjectId: 'MATH',
-            subjectName: 'Toán',
-            studentId: student.studentId,
-            studentName: student.name,
+            subjectId,
+            studentId: student.id,
             hs1: Number(student.m15_1) || 0,
             hs2: Number(student.midterm) || 0,
             hs3: Number(student.final) || 0,
           }),
         })
-      )
+  }})
     );
 
     alert('Lưu điểm thành công!');
@@ -216,7 +219,7 @@ const handleInputChange = (studentId: string, field: string, value: string) => {
             <span className="text-xs font-semibold tracking-tight">Nhập điểm trong thang 0-10. Tự động lưu mỗi 5 phút.</span>
           </div>
           <div className="flex items-center gap-4">
-            <button className="px-6 py-2.5 rounded-xl border border-[#e2e8f0] text-sm font-bold text-[#1e293b] hover:bg-gray-50 transition-colors">
+            <button onClick={handlePostGrades} className="px-6 py-2.5 rounded-xl border border-[#e2e8f0] text-sm font-bold text-[#1e293b] hover:bg-gray-50 transition-colors">
               Lưu tạm thời
             </button>
             <button

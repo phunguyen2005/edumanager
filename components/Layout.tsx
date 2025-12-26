@@ -228,10 +228,10 @@ const Sidebar = () => {
                         <div className="flex flex-col">
                             {}
                             <p className="text-xs font-bold text-text-main">
-                                {getName()}
+                                {"Lê Thị A"}
                             </p>
                             <p className="text-[10px] text-text-secondary">
-                                {getRole()}
+                                {"Lê Thị A"}
                             </p>
                         </div>
                         <LogOut

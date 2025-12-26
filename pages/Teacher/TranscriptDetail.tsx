@@ -7,6 +7,7 @@ const TranscriptDetail: React.FC = () => {
     const navigate = useNavigate();
     const [grades, setGrades] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
+    const [student, setStudent] = useState<any>({});
 
     useEffect(() => {
         const fetchSubjectGrades = async () => {
@@ -95,8 +96,8 @@ const TranscriptDetail: React.FC = () => {
                         <span className="material-symbols-outlined text-3xl">person</span>
                     </div>
                     <div>
-                        <h3 className="text-xl font-black text-text-main">Nguyễn Văn An</h3>
-                        <p className="text-text-secondary font-medium text-sm mt-1">Mã HS: HS2023001 • Lớp: 10A1</p>
+                        <h3 className="text-xl font-black text-text-main">{student?.fullname || 'Nuyen Van A'}</h3>
+                        <p className="text-text-secondary font-medium text-sm mt-1">Mã HS: {student?.studentId || '1200071'} • Lớp: {student?.className || '10A3'}</p>
                     </div>
                 </div>
                 <div className="text-right bg-white/50 px-6 py-2 rounded-xl border border-blue-100">
@@ -119,7 +120,6 @@ const TranscriptDetail: React.FC = () => {
                             <tr className="bg-white text-xs font-bold text-text-secondary uppercase border-b border-surface-dim">
                                 <th className="px-6 py-4 w-16 text-center">STT</th>
                                 <th className="px-6 py-4">Môn học</th>
-                                <th className="px-6 py-4 text-center">Miệng</th>
                                 <th className="px-6 py-4 text-center">15 phút</th>
                                 <th className="px-6 py-4 text-center">1 tiết</th>
                                 <th className="px-6 py-4 text-center">Thi HK</th>
@@ -141,7 +141,7 @@ const TranscriptDetail: React.FC = () => {
 
                             {loading ? (
                                 <tr>
-                                    <td colSpan={8} className="px-6 py-8 text-center text-text-secondary">
+                                    <td colSpan={7} className="px-6 py-8 text-center text-text-secondary">
                                         Đang tải dữ liệu...
                                     </td>
                                 </tr>
@@ -149,8 +149,7 @@ const TranscriptDetail: React.FC = () => {
                                 grades.map((grade, idx) => (
                                     <tr key={grade._id || idx} className="hover:bg-surface-dim/30 transition-colors">
                                         <td className="px-6 py-4 text-center text-text-secondary font-medium">{idx + 1}</td>
-                                        <td className="px-6 py-4 font-bold text-text-main">{grade.subjectName}</td>
-                                        <td className="px-6 py-4 text-center text-text-main">-</td>
+                     //                   <td className="px-6 py-4 font-bold text-text-main">{grade.subjectName}</td>
                                         <td className="px-6 py-4 text-center text-text-main">{grade.m15_1}</td>
                                         <td className="px-6 py-4 text-center text-text-main">-</td>
                                         <td className="px-6 py-4 text-center font-bold text-text-main">{grade.midterm}</td>
@@ -164,7 +163,7 @@ const TranscriptDetail: React.FC = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={8} className="px-6 py-8 text-center text-text-secondary">
+                                    <td colSpan={7} className="px-6 py-8 text-center text-text-secondary">
                                         Không có dữ liệu điểm
                                     </td>
                                 </tr>
