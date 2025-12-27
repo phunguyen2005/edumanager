@@ -161,7 +161,7 @@ const StudentGradesList: React.FC = () => {
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <button 
-                                        onClick={() => navigate('/teacher/transcript')}
+                                        onClick={() => navigate(`/teacher/transcript/${student.studentId}`)}
                                         className="text-text-main hover:text-primary-hover font-bold text-sm inline-flex items-center gap-1 hover:underline decoration-2"
                                     >
                                         Lập bảng điểm

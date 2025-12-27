@@ -1,10 +1,47 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { mockSubjectGrades } from './mockData';
 import { Layout } from '../../components/Layout';
 
 const TranscriptDetail: React.FC = () => {
     const navigate = useNavigate();
+    const [grades, setGrades] = useState<any[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [student, setStudent] = useState<any>({});
+
+    useEffect(() => {
+        const fetchSubjectGrades = async () => {
+            try {
+                setLoading(true);
+                const accessToken = localStorage.getItem('accessToken');
+                if (!accessToken) throw new Error('Unauthorized');
+
+                const res = await fetch('http://localhost:3001/api/subject-grade', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                });
+
+                if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.message || 'Fetch thất bại');
+                }
+
+                const data = await res.json();
+                console.log('Fetch subject grades:', data);
+                setGrades(data.data || []);
+            } catch (error) {
+                console.error(error instanceof Error ? error.message : 'Đã có lỗi xảy ra. Hãy thử lại!');
+                setGrades(mockSubjectGrades);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchSubjectGrades();
+    }, []);
 
   return (
     <Layout breadcrumbs={['Giáo viên', 'Quản lý điểm', 'Bảng điểm chi tiết']}>
@@ -59,13 +96,13 @@ const TranscriptDetail: React.FC = () => {
                         <span className="material-symbols-outlined text-3xl">person</span>
                     </div>
                     <div>
-                        <h3 className="text-xl font-black text-text-main">Nguyễn Văn An</h3>
-                        <p className="text-text-secondary font-medium text-sm mt-1">Mã HS: HS2023001 • Lớp: 10A1</p>
+                        <h3 className="text-xl font-black text-text-main">{student?.fullname || 'Nuyen Van A'}</h3>
+                        <p className="text-text-secondary font-medium text-sm mt-1">Mã HS: {student?.studentId || '1200071'} • Lớp: {student?.className || '10A3'}</p>
                     </div>
                 </div>
                 <div className="text-right bg-white/50 px-6 py-2 rounded-xl border border-blue-100">
                     <p className="text-xs font-bold text-text-secondary mb-1 uppercase tracking-wide">Điểm trung bình</p>
-                    <div className="text-4xl font-black text-blue-600">8.5</div>
+                    <div className="text-4xl font-black text-blue-600"></div>
                 </div>
             </div>
 
@@ -83,7 +120,6 @@ const TranscriptDetail: React.FC = () => {
                             <tr className="bg-white text-xs font-bold text-text-secondary uppercase border-b border-surface-dim">
                                 <th className="px-6 py-4 w-16 text-center">STT</th>
                                 <th className="px-6 py-4">Môn học</th>
-                                <th className="px-6 py-4 text-center">Miệng</th>
                                 <th className="px-6 py-4 text-center">15 phút</th>
                                 <th className="px-6 py-4 text-center">1 tiết</th>
                                 <th className="px-6 py-4 text-center">Thi HK</th>
@@ -92,7 +128,8 @@ const TranscriptDetail: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-surface-dim text-sm">
-                            {mockSubjectGrades.map((grade, idx) => (
+
+                            {/* {mockSubjectGrades.map((grade, idx) => (
                                 <tr key={grade.id} className="hover:bg-surface-dim/30 transition-colors">
                                     <td className="px-6 py-4 text-center text-text-secondary font-medium">{idx + 1}</td>
                                     <td className="px-6 py-4 font-bold text-text-main">{grade.subject}</td>
@@ -100,22 +137,45 @@ const TranscriptDetail: React.FC = () => {
                                     <td className="px-6 py-4 text-center text-text-main">{grade.min15}</td>
                                     <td className="px-6 py-4 text-center text-text-main">{grade.period1}</td>
                                     <td className="px-6 py-4 text-center font-bold text-text-main">{grade.semester}</td>
-                                    <td className="px-6 py-4 text-center font-black text-blue-600 bg-blue-50/50">{grade.average}</td>
-                                    <td className="px-6 py-4 text-center">
-                                        <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-100">
-                                            Đạt
-                                        </span>
+                                    <td className="px-6 py-4 text-center font-black text-blue-600 bg-blue-50/50">{grade.average}</td> */}
+
+                            {loading ? (
+                                <tr>
+                                    <td colSpan={7} className="px-6 py-8 text-center text-text-secondary">
+                                        Đang tải dữ liệu...
                                     </td>
                                 </tr>
-                            ))}
+                            ) : grades.length > 0 ? (
+                                grades.map((grade, idx) => (
+                                    <tr key={grade._id || idx} className="hover:bg-surface-dim/30 transition-colors">
+                                        <td className="px-6 py-4 text-center text-text-secondary font-medium">{idx + 1}</td>
+                     //                   <td className="px-6 py-4 font-bold text-text-main">{grade.subjectName}</td>
+                                        <td className="px-6 py-4 text-center text-text-main">{grade.m15_1}</td>
+                                        <td className="px-6 py-4 text-center text-text-main">-</td>
+                                        <td className="px-6 py-4 text-center font-bold text-text-main">{grade.midterm}</td>
+                                        <td className="px-6 py-4 text-center font-black text-blue-600 bg-blue-50/50">{grade.final}</td>
+                                        <td className="px-6 py-4 text-center">
+                                            <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-100">
+                                                Đạt
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={7} className="px-6 py-8 text-center text-text-secondary">
+                                        Không có dữ liệu điểm
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
                 <div className="p-6 border-t border-surface-dim bg-white flex justify-end gap-3">
-                    <button onClick={() => navigate('/teacher/grades')} className="px-6 py-2.5 bg-white border border-surface-dim rounded-full text-sm font-bold hover:bg-surface-dim text-text-main transition-colors">
+                    <button onClick={() => navigate('/teacher/classes')} className="px-6 py-2.5 bg-white border border-surface-dim rounded-full text-sm font-bold hover:bg-surface-dim text-text-main transition-colors">
                         Hủy bỏ
                     </button>
-                    <button className="px-6 py-2.5 bg-primary hover:bg-primary-hover text-text-main font-bold rounded-full text-sm shadow-sm transition-colors transform active:scale-95">
+                    <button onClick={() => navigate('/teacher/classes')} className="px-6 py-2.5 bg-primary hover:bg-primary-hover text-text-main font-bold rounded-full text-sm shadow-sm transition-colors transform active:scale-95">
                         Xác nhận điểm
                     </button>
                 </div>

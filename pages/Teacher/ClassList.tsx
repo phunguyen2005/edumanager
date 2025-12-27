@@ -21,14 +21,14 @@ const ClassList: React.FC = () => {
                 if (!accessToken) throw new Error("Unauthorize");
 
                 const [cnRes, teachRes] = await Promise.all([
-                    fetch("http://localhost:3001/api/class", {
+                    fetch("http://localhost:3001/api/class/class-teacher", {
                         method: "GET",
                         headers: {
                             "Content-Type": "application/json",
                             Authorization: `Bearer ${accessToken}`,
                         },
                     }),
-                    fetch("http://localhost:3001/api/class", {
+                    fetch("http://localhost:3001/api/teacher/assignments", {
                         method: "GET",
                         headers: {
                             "Content-Type": "application/json",
@@ -53,7 +53,7 @@ const ClassList: React.FC = () => {
                 console.log("fetch lop chu nhiem", cnData);
                 console.log("fetch lop giang day", teachData);
 
-                setClassCn(cnData.data);
+                setClassCn(cnData?.data ?? []);
                 setClassTeach(teachData.data);
             } catch (error) {
                 console.error(
@@ -167,23 +167,23 @@ const ClassList: React.FC = () => {
                                                     <div className="w-4 h-4 rounded-full border-2 border-surface-dim"></div>
                                                 </td>
                                                 <td className="px-6 py-4 text-text-main font-bold">
-                                                    {cls._id}
+                                                    {cls?._id ?? 'id_lop'}
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-xs font-bold">
-                                                        {cls.className}
+                                                        {cls?.className ?? 'Ten Lop'}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-text-main font-medium">
-                                                    {cls.homeroomTeacher || "Chưa có"}
+                                                    {cls?.fullname ?? ""}
                                                 </td>
                                                 <td className="px-6 py-4 text-center">
                                                     <span className="bg-surface-dim text-text-secondary px-2 py-1 rounded text-xs font-bold">
-                                                        {cls.grade}
+                                                        {cls?.grade ?? 'Khoi'}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-text-main font-medium">
-                                                    {cls.quantity}
+                                                    {cls?.quantity}
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
                                                     <Link
@@ -253,7 +253,7 @@ const ClassList: React.FC = () => {
                                                     </td>
                                                     <td className="px-6 py-4 text-text-main font-medium">
                                                         {cls.fullname ||
-                                                            "chua co ten"}
+                                                            'Lê Thị A' }
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
                                                         <span className="bg-surface-dim text-text-secondary px-2 py-1 rounded text-xs font-bold">

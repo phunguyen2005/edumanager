@@ -4,35 +4,22 @@ import { useParams } from 'react-router-dom';
 import { Layout } from '../../components/Layout';
 import { Search, FileUp, FileDown, Save, ChevronDown, Info } from 'lucide-react';
 
-interface GradeRow {
-  stt: number;
-  id: string;
-  name: string;
-  avatar: string;
-  oral1: string;
-  oral2: string;
-  m15_1: string;
-  m15_2: string;
-  midterm: string;
-  final: string;
-  total: string;
-}
+const subjectId = '694d34c8c2d09ec3928e354e'
 
 const TranscriptDetail: React.FC = () => {
   const { classId } = useParams<{ classId: string }>();
-  const [students, setStudents] = useState<GradeRow[]>([]);
+  const [students, setStudents] = useState<any[]>([]);
   const [className, setClassName] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchStudentsWithGrades = async () => {
+    const fetchStudentsByClass = async () => {
       try {
         setLoading(true);
         const accessToken = localStorage.getItem('accessToken');
         if (!accessToken) throw new Error('Unauthorized');
 
-        // Fetch students by class
-        const res = await fetch(`http://localhost:3001/api/student/class/${classId}`, {
+        const res = await fetch(`http://localhost:3001/api/class/students/${classId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -46,36 +33,81 @@ const TranscriptDetail: React.FC = () => {
         }
 
         const data = await res.json();
-        console.log('Fetch students with grades:', data);
+        
+        const students = data.data.flat();
 
-        if (data.data && Array.isArray(data.data)) {
-          const formattedStudents: GradeRow[] = data.data.map((student: any, index: number) => ({
-            stt: index + 1,
-            id: student.studentId,
-            name: student.studentInfo?.fullname || student.fullname || 'N/A',
-            avatar: student.studentInfo?.avatar || 'https://i.pravatar.cc/150?u=default',
-            oral1: '',
-            oral2: '',
-            m15_1: '',
-            m15_2: '',
-            midterm: '',
-            final: '',
-            total: '--',
-          }));
-          setStudents(formattedStudents);
-          setClassName(data.data[0]?.className || classId);
+        const transformedStudents = students.map((student: any, index: number) => ({
+          id: student._id,
+          stt: index + 1,
+          studentId: student.studentId,
+          name: student.fullname,
+          avatar: student.avatar,
+          m15_1: '',
+          midterm: '',
+          final: '',
+          total: ''
+        }));
+        console.log('Transformed Students:', students);
+        
+        setStudents(transformedStudents);
+        
+        // Get class name from first student
+        if (data.data && data.data.length > 0) {
+          setClassName(data.data[0].className || className);
         }
       } catch (error) {
-        console.error(error instanceof Error ? error.message : 'Đã có lỗi xảy ra');
+        console.error(error instanceof Error ? error.message : 'Đã có lỗi xảy ra. Hãy thử lại!');
       } finally {
         setLoading(false);
       }
     };
 
     if (classId) {
-      fetchStudentsWithGrades();
+      fetchStudentsByClass();
     }
   }, [classId]);
+
+  const handlePostGrades = async () => {
+  try {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) throw new Error('Unauthorized');
+
+
+    await Promise.all(
+      students.map(student => {
+        if (student.m15_1 && student.midterm && student.final) {
+        return fetch('http://localhost:3001/api/subject-grade', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            subjectId,
+            studentId: student.id,
+            hs1: Number(student.m15_1) || 0,
+            hs2: Number(student.midterm) || 0,
+            hs3: Number(student.final) || 0,
+          }),
+        })
+  }})
+    );
+
+    alert('Lưu điểm thành công!');
+  } catch (error) {
+    console.error(error);
+    alert(error instanceof Error ? error.message : 'Đã có lỗi xảy ra!');
+  }
+};
+
+const handleInputChange = (studentId: string, field: string, value: string) => {
+  setStudents(prevStudents =>
+    prevStudents.map(student =>
+      student.id === studentId ? { ...student, [field]: value } : student
+    )
+  );
+};
+
 
   return (
     <Layout breadcrumbs={['Danh sách lớp', `Lớp ${className}`, 'Nhập điểm']}>
@@ -128,9 +160,6 @@ const TranscriptDetail: React.FC = () => {
                   <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
                     <th className="py-4 px-4 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider text-center w-16">STT</th>
                     <th className="py-4 px-6 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider text-left">Họ và tên</th>
-                    <th className="py-4 px-2 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider text-center w-24">Miệng 1</th>
-                    <th className="py-4 px-2 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider text-center w-24">Miệng 2</th>
-                    <th className="py-4 px-2 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider text-center w-24">15 Phút</th>
                     <th className="py-4 px-2 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider text-center w-24">15 Phút</th>
                     <th className="py-4 px-2 text-[11px] font-extrabold text-[#2563eb] uppercase tracking-wider text-center w-28 bg-[#f0f7ff]">Giữa kỳ</th>
                     <th className="py-4 px-2 text-[11px] font-extrabold text-[#2563eb] uppercase tracking-wider text-center w-28">Cuối kỳ</th>
@@ -146,27 +175,33 @@ const TranscriptDetail: React.FC = () => {
                           <img src={student.avatar} alt="" className="size-9 rounded-full bg-gray-100 object-cover" />
                           <div className="flex flex-col">
                             <span className="text-sm font-bold text-[#1e293b] leading-tight">{student.name}</span>
-                            <span className="text-[10px] text-[#94a3b8] font-bold uppercase tracking-tight mt-0.5">ID: {student.id}</span>
+                            <span className="text-[10px] text-[#94a3b8] font-bold uppercase tracking-tight mt-0.5">ID: {student.studentId}</span>
                           </div>
                         </div>
                       </td>
                       <td className="py-4 px-2">
-                        <input type="text" defaultValue={student.oral1} className="w-16 h-10 text-center bg-white border border-[#e2e8f0] rounded-lg text-sm font-bold text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all shadow-sm" />
-                      </td>
-                      <td className="py-4 px-2">
-                        <input type="text" defaultValue={student.oral2} className="w-16 h-10 text-center bg-white border border-[#e2e8f0] rounded-lg text-sm font-bold text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all shadow-sm" />
-                      </td>
-                      <td className="py-4 px-2">
-                        <input type="text" defaultValue={student.m15_1} className="w-16 h-10 text-center bg-white border border-[#e2e8f0] rounded-lg text-sm font-bold text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all shadow-sm" />
-                      </td>
-                      <td className="py-4 px-2">
-                        <input type="text" defaultValue={student.m15_2} className="w-16 h-10 text-center bg-white border border-[#e2e8f0] rounded-lg text-sm font-bold text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all shadow-sm" />
+                        <input
+                          type="text"
+                          value={student.m15_1}
+                          onChange={(e) => handleInputChange(student.id, 'm15_1', e.target.value)}
+                          className="w-16 h-10 text-center bg-white border border-[#e2e8f0] rounded-lg text-sm font-bold text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all shadow-sm"
+                        />
                       </td>
                       <td className="py-4 px-2 bg-[#f0f7ff]/50">
-                        <input type="text" defaultValue={student.midterm} className="w-20 h-10 text-center bg-white border border-[#2563eb]/20 rounded-lg text-sm font-bold text-[#2563eb] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all shadow-sm" />
+                        <input
+                          type="text"
+                          value={student.midterm}
+                          onChange={(e) => handleInputChange(student.id, 'midterm', e.target.value)}
+                          className="w-20 h-10 text-center bg-white border border-[#2563eb]/20 rounded-lg text-sm font-bold text-[#2563eb] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all shadow-sm"
+                        />
                       </td>
                       <td className="py-4 px-2">
-                        <input type="text" defaultValue={student.final} className="w-20 h-10 text-center bg-white border border-[#e2e8f0] rounded-lg text-sm font-bold text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all shadow-sm" />
+                        <input
+                          type="text"
+                          value={student.final}
+                          onChange={(e) => handleInputChange(student.id, 'final', e.target.value)}
+                          className="w-20 h-10 text-center bg-white border border-[#e2e8f0] rounded-lg text-sm font-bold text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all shadow-sm"
+                        />
                       </td>
                       <td className="py-4 px-6 text-sm font-bold text-[#1e293b] text-center">{student.total}</td>
                     </tr>
@@ -184,10 +219,13 @@ const TranscriptDetail: React.FC = () => {
             <span className="text-xs font-semibold tracking-tight">Nhập điểm trong thang 0-10. Tự động lưu mỗi 5 phút.</span>
           </div>
           <div className="flex items-center gap-4">
-            <button className="px-6 py-2.5 rounded-xl border border-[#e2e8f0] text-sm font-bold text-[#1e293b] hover:bg-gray-50 transition-colors">
+            <button onClick={handlePostGrades} className="px-6 py-2.5 rounded-xl border border-[#e2e8f0] text-sm font-bold text-[#1e293b] hover:bg-gray-50 transition-colors">
               Lưu tạm thời
             </button>
-            <button className="flex items-center gap-2 px-8 py-2.5 bg-[#2563eb] text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-700 active:scale-95 transition-all">
+            <button
+              onClick={handlePostGrades}
+              className="flex items-center gap-2 px-8 py-2.5 bg-[#2563eb] text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-700 active:scale-95 transition-all"
+            >
               <Save size={18} />
               Lưu và Chốt điểm
             </button>
