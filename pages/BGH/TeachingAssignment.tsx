@@ -3,6 +3,9 @@ import { Layout } from "../../components/Layout";
 
 const TeachingAssignment: React.FC = () => {
   const [teachers, setTeachers] = useState<any[]>([]);
+  const [classes, setClasses] = useState<any[]>([]);
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<any>({});
 
   const fetchTeachers = async () => {
     try {
@@ -24,7 +27,7 @@ const TeachingAssignment: React.FC = () => {
       const result = await res.json();
 
       if (res.status === 200) {
-        setTeachers(result.data); // giả sử BE trả { data: [...] }
+        setTeachers(result.data);
       } else {
         console.error("Fetch teacher failed:", result);
       }
@@ -33,8 +36,121 @@ const TeachingAssignment: React.FC = () => {
     }
   };
 
+  const fetchClasses = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+
+      if (!token) {
+        console.error("Không tìm thấy accessToken");
+        return;
+      }
+
+      const res = await fetch("http://localhost:3001/api/class", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const result = await res.json();
+
+      if (res.status === 200) {
+        setClasses(result.data);
+      } else {
+        console.error("Fetch classes failed:", result);
+      }
+    } catch (error) {
+      console.error("Fetch classes error:", error);
+    }
+  };
+
+  const fetchSubjects = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+
+      if (!token) {
+        console.error("Không tìm thấy accessToken");
+        return;
+      }
+
+      const res = await fetch("http://localhost:3001/api/subject", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const result = await res.json();
+
+      if (res.status === 200) {
+        setSubjects(result.data);
+      } else {
+        console.error("Fetch subjects failed:", result);
+      }
+    } catch (error) {
+      console.error("Fetch subjects error:", error);
+    }
+  };
+
+  const handleAssignTeachers = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) return;
+
+      const requests: Promise<any>[] = [];
+
+      for (const classId in assignments) {
+        const subjectAssignments = assignments[classId];
+
+        for (const subjectId in subjectAssignments) {
+          const teacherId = subjectAssignments[subjectId];
+
+          // ✅ FIX CỐT LÕI
+          if (!classId || !subjectId || !teacherId) continue;
+
+          const payload = {
+            class: classId,
+            subject: subjectId,
+            teacher: teacherId,
+          };
+
+          requests.push(
+            fetch("http://localhost:3001/api/teaching-assignment", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(payload),
+            }).then(async (res) => {
+              if (!res.ok) {
+                const err = await res.json();
+                throw err;
+              }
+            })
+          );
+        }
+      }
+
+      if (requests.length === 0) {
+        console.log("Chưa chọn giáo viên nào");
+        return;
+      }
+
+      await Promise.all(requests);
+      console.log("Lưu phân công thành công");
+    } catch (error) {
+      console.error("Lỗi lưu phân công:", error);
+      console.log("Có lỗi khi lưu phân công");
+    }
+  };
+
   useEffect(() => {
     fetchTeachers();
+    fetchClasses();
+    fetchSubjects();
   }, []);
 
   const renderTeacherOptions = () =>
@@ -64,7 +180,10 @@ const TeachingAssignment: React.FC = () => {
               </span>
               Nhập từ Excel
             </button>
-            <button className="flex items-center gap-2 bg-primary hover:bg-[#eae605] text-text-main px-5 py-2.5 rounded-full font-bold text-sm shadow-sm transition-all active:scale-95">
+            <button
+              className="flex items-center gap-2 bg-primary hover:bg-[#eae605] text-text-main px-5 py-2.5 rounded-full font-bold text-sm shadow-sm transition-all active:scale-95"
+              onClick={handleAssignTeachers}
+            >
               <span className="material-symbols-outlined !text-[20px]">
                 save
               </span>
@@ -116,31 +235,29 @@ const TeachingAssignment: React.FC = () => {
         </div>
 
         <div className="max-w-[1440px] mx-auto p-6">
-          <table className="w-full border-collapse">
+          <table className="w-full border-collapse table-fixed">
             <thead>
               <tr className="border-b">
-                <th className="py-3 px-6 text-center whitespace-nowrap">Lớp</th>
-                <th className="py-3 px-6 text-center whitespace-nowrap">Giáo viên chủ nhiệm</th>
-                <th className="py-3 px-6 text-center whitespace-nowrap">Toán</th>
-                <th className="py-3 px-6 text-center whitespace-nowrap">Văn</th>
-                <th className="py-3 px-6 text-center whitespace-nowrap">Hoá</th>
-                <th className="py-3 px-6 text-center whitespace-nowrap">Ngữ văn</th>
-                <th className="py-3 px-6 text-center whitespace-nowrap">Lịch sử</th>
-                <th className="py-3 px-6 text-center whitespace-nowrap">Địa lí</th>
-                <th className="py-3 px-6 text-center whitespace-nowrap">Sinh học</th>
-                <th className="py-3 px-6 text-center whitespace-nowrap">Tiếng anh</th>
-                <th className="py-3 px-6 text-center whitespace-nowrap">Giáo dục công dân</th>
-                <th className="py-3 px-6 text-center whitespace-nowrap">Công nghệ</th>
-                <th className="py-3 px-6 text-center whitespace-nowrap">Giáo dục quốc phòng</th>
-                <th className="py-3 px-6 text-center whitespace-nowrap">Giáo dục thể chất</th>
-                <th className="py-3 px-6 text-center whitespace-nowrap">Tin học</th>
+                <th className="py-3 px-6 text-center w-[180px]">Lớp</th>
+                <th className="py-3 px-6 text-center w-[180px]">
+                  Giáo viên chủ nhiệm
+                </th>
+
+                {subjects.map((s) => (
+                  <th key={s._id} className="py-3 px-6 text-center w-[180px]">
+                    {s.name}
+                  </th>
+                ))}
               </tr>
             </thead>
 
             <tbody>
-              {["10A1", "10A2", "10A3"].map((lop) => (
-                <tr key={lop} className="border-b">
-                  <td className="py-3 px-4 font-medium">{lop}</td>
+              {classes.map((c) => (
+                <tr key={c._id || c.className} className="border-b">
+                  {/* LỚP */}
+                  <td className="py-3 px-4 text-center font-medium">
+                    {c.className}
+                  </td>
 
                   {/* GVCN */}
                   <td className="py-3 px-4">
@@ -150,29 +267,27 @@ const TeachingAssignment: React.FC = () => {
                     </select>
                   </td>
 
-                  {/* Toán */}
-                  <td className="py-3 px-4">
-                    <select className="w-full py-2 px-3 border rounded-lg">
-                      <option value="">-- Chọn GV --</option>
-                      {renderTeacherOptions()}
-                    </select>
-                  </td>
-
-                  {/* Văn */}
-                  <td className="py-3 px-4">
-                    <select className="w-full py-2 px-3 border rounded-lg">
-                      <option value="">-- Chọn GV --</option>
-                      {renderTeacherOptions()}
-                    </select>
-                  </td>
-
-                  {/* Anh */}
-                  <td className="py-3 px-4">
-                    <select className="w-full py-2 px-3 border rounded-lg">
-                      <option value="">-- Chọn GV --</option>
-                      {renderTeacherOptions()}
-                    </select>
-                  </td>
+                  {/* GIÁO VIÊN BỘ MÔN */}
+                  {subjects.map((s) => (
+                    <td key={s._id} className="py-3 px-4">
+                      <select
+                        className="w-full py-2 px-3 border rounded-lg"
+                        value={assignments?.[c._id]?.[s._id] || ""}
+                        onChange={(e) =>
+                          setAssignments((prev) => ({
+                            ...prev,
+                            [c._id]: {
+                              ...prev[c._id],
+                              [s._id]: e.target.value,
+                            },
+                          }))
+                        }
+                      >
+                        <option value="">-- Chọn GV --</option>
+                        {renderTeacherOptions()}
+                      </select>
+                    </td>
+                  ))}
                 </tr>
               ))}
             </tbody>
