@@ -257,11 +257,11 @@ const ClassList: React.FC = () => {
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
                                                         <span className="bg-surface-dim text-text-secondary px-2 py-1 rounded text-xs font-bold">
-                                                            {cls.grade}
+                                                            {cls.className.substring(0, 2)}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 text-text-main font-medium">
-                                                        {cls.quantity}
+                                                        {cls.subjectName}
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
                                                         <Link
